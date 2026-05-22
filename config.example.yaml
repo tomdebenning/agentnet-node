@@ -1,0 +1,27 @@
+node:
+  id: "node-01"
+  descriptive_info:
+    host: "dev-box"
+    location: "lab"
+
+server:
+  host: "127.0.0.1"
+  port: 8080
+
+agents_root: "./agents"
+
+control_plane:
+  url: "http://127.0.0.1:8000"
+  request_timeout_seconds: 10
+  max_retries: 3
+  retry_backoff_base_seconds: 1.0
+
+heartbeat:
+  interval_seconds: 30
+
+brave_search:
+  api_key: ""  # or set BRAVE_SEARCH_API_KEY in the environment
+
+logging:
+  level: "INFO"
+  format: "console"
