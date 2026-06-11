@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agentnet-shared"
+version = "0.1.0"
+description = "Shared schemas and markdown helpers for agentnet"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.10.0",
+    "PyYAML>=6.0.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

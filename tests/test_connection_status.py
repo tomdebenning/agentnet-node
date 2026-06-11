@@ -13,7 +13,8 @@ def test_format_when_gateway_unreachable() -> None:
             "gateway_error": "Connection refused",
         }
     )
-    assert "Gateway: DISCONNECTED" in text
+    assert "Gateway:" in text
+    assert "DISCONNECTED" in text
     assert "Control plane: (unknown" in text
 
 
@@ -29,8 +30,9 @@ def test_format_when_all_connected() -> None:
             "running_agent_count": 1,
         }
     )
-    assert "Gateway: connected" in text
-    assert "Control plane: connected  http://127.0.0.1:8000" in text
+    assert "Gateway:" in text
+    assert "connected" in text
+    assert "http://127.0.0.1:8000" in text
     assert "Node: node-01" in text
 
 

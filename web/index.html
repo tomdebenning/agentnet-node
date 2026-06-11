@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agentnet Node</title>
+  </head>
+  <body>
+    <div id="root">
+      <div id="boot-fallback" style="max-width:720px;margin:40px auto;padding:24px;font-family:Segoe UI,sans-serif;color:#ecfdf3">
+        <h1 style="color:#c8ebd3;margin:0 0 12px">Agentnet Node</h1>
+        <p style="color:#9dc4ad;margin:0">Loading web UI…</p>
+      </div>
+    </div>
+    <script>
+      (function () {
+        function showError(msg) {
+          var fb = document.getElementById("boot-fallback");
+          if (!fb) return;
+          fb.innerHTML =
+            '<h1 style="color:#c8ebd3;margin:0 0 12px">Agentnet Node</h1>' +
+            '<p style="color:#ffb84d;margin:0 0 12px;line-height:1.5">' + msg + "</p>" +
+            '<p style="color:#9dc4ad;margin:0;font-size:14px">Diagnostic: <a href="/api/frontend-health" style="color:#6aabff">/api/frontend-health</a></p>';
+        }
+        window.addEventListener(
+          "error",
+          function (e) {
+            var t = e.target;
+            if (t && t.tagName === "SCRIPT") {
+              showError(
+                "Could not load the app JavaScript (" + (t.src || "unknown") + "). " +
+                  "Run: cd web && npm install && npm run build — then restart ./run-gateway.sh and hard-refresh (Ctrl+Shift+R)."
+              );
+            }
+          },
+          true
+        );
+        setTimeout(function () {
+          if (document.getElementById("boot-fallback")) {
+            showError(
+              "The web UI did not start. Hard-refresh this page (Ctrl+Shift+R). " +
+                "If it persists, rebuild the frontend and restart the gateway."
+            );
+          }
+        }, 5000);
+      })();
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -10,7 +10,7 @@ from httpx import ASGITransport, AsyncClient
 from gateway.agent_store import AgentFileKind, AgentStore
 from gateway.app import create_app
 from gateway.config import GatewayConfig, NodeSection, ControlPlaneSection, ServerSection
-from gateway.markdown_io import parse_markdown_document, render_markdown_document
+from shared.markdown_io import parse_markdown_document, render_markdown_document
 
 
 @pytest.fixture
@@ -21,11 +21,15 @@ def tmp_agents_root(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
-def gateway_config(tmp_agents_root: Path) -> GatewayConfig:
+def gateway_config(tmp_agents_root: Path, tmp_path: Path) -> GatewayConfig:
+    definitions = tmp_path / "definitions"
+    definitions.mkdir()
     return GatewayConfig(
         node=NodeSection(id="test-node"),
         server=ServerSection(host="127.0.0.1", port=8080),
         agents_root=str(tmp_agents_root),
+        definitions_root=str(definitions),
+        database=str(tmp_path / "gateway.db"),
         control_plane=ControlPlaneSection(url="http://127.0.0.1:8000"),
     )
 
@@ -45,6 +49,8 @@ def test_agent_store_crud(tmp_agents_root: Path) -> None:
     assert agents[0].agent_id == "alpha"
     content = store.read_file("alpha", AgentFileKind.PERSONA)
     assert "alpha" in content
+    task_content = store.read_file("alpha", AgentFileKind.TASK)
+    assert "Describe what this agent should do" in task_content
     store.delete_agent("alpha")
     assert store.list_agents() == []
 
@@ -57,19 +63,19 @@ async def test_admin_api_list_and_create(gateway_config: GatewayConfig) -> None:
     async with LifespanManager(app):
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
-            empty = await client.get("/api/agents")
+            empty = await client.get("/api/fleet/instances")
             assert empty.status_code == 200
-            assert empty.json()["agents"] == []
+            assert empty.json()["instances"] == []
 
             created = await client.post(
-                "/api/agents",
-                json={"agent_id": "demo", "target_puller": "puller-01", "model": "llama3.1:8b"},
+                "/api/fleet/instances",
+                json={"instance_id": "demo", "target_puller": "puller-01", "model": "llama3.1:8b"},
             )
             assert created.status_code == 201
-            assert created.json()["agent_id"] == "demo"
+            assert created.json()["instance_id"] == "demo"
 
-            listing = await client.get("/api/agents")
-            assert len(listing.json()["agents"]) == 1
+            listing = await client.get("/api/fleet/instances")
+            assert len(listing.json()["instances"]) == 1
 
 
 @pytest.mark.asyncio

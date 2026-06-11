@@ -1,0 +1,370 @@
+/* Green / amber / blue / red / yellow ramps — matches web theme */
+
+$green-50: #e8f7ec;
+$green-100: #c8ebd3;
+$green-300: #5cb87a;
+$green-500: #2d9a52;
+$green-700: #1a6b38;
+$green-900: #0d3d20;
+
+$amber-50: #fff8e6;
+$amber-100: #ffe8b3;
+$amber-300: #ffb84d;
+$amber-500: #f59e0b;
+$amber-700: #b45309;
+
+$blue-50: #e8f2ff;
+$blue-100: #c5ddff;
+$blue-300: #6aabff;
+$blue-500: #3b82f6;
+$blue-700: #1d4ed8;
+
+$red-100: #ffc5c5;
+$red-300: #f87171;
+$red-500: #ef4444;
+$red-700: #b91c1c;
+
+$yellow-100: #fef08a;
+$yellow-300: #facc15;
+$yellow-700: #a16207;
+
+$bg: #0a1410;
+$surface: #122018;
+$surface-raised: #1a2e22;
+$border: #2a4a36;
+$text: #ecfdf3;
+$text-muted: #9dc4ad;
+
+Screen {
+    background: $bg;
+}
+
+MainScreen {
+    layout: vertical;
+}
+
+#main-switcher {
+    height: 1fr;
+    margin: 0 1;
+}
+
+#main-nav-hint {
+    padding: 0 2 1 2;
+    color: $text-muted;
+}
+
+ContentSwitcher {
+    height: 1fr;
+}
+
+ContentSwitcher RunningPanel,
+ContentSwitcher BullPenPanel {
+    height: 1fr;
+    layout: vertical;
+}
+
+RunningPanel {
+    height: 1fr;
+    layout: vertical;
+}
+
+BullPenPanel {
+    height: 1fr;
+    layout: vertical;
+}
+
+RunningPanel #fleet-list {
+    height: 1fr;
+    min-height: 10;
+}
+
+RunningPanel #completions-list {
+    height: 8;
+    min-height: 4;
+    max-height: 12;
+}
+
+BullPenPanel #definition-list {
+    height: 1fr;
+    min-height: 12;
+}
+
+#running-title, #bullpen-title {
+    text-style: bold;
+    color: $green-100;
+    padding: 1 0 0 1;
+}
+
+#fleet-section-label, #bullpen-hint {
+    color: $text-muted;
+    padding: 0 0 0 1;
+}
+
+Header {
+    background: $green-900;
+    color: $green-100;
+}
+
+Footer {
+    background: $surface-raised;
+    color: $blue-100;
+}
+
+Static {
+    color: $text;
+}
+
+Label {
+    color: $text;
+}
+
+#connection-status {
+    padding: 1 2;
+    margin: 0 1 1 1;
+    border: solid $border;
+    background: $surface;
+}
+
+#title, #detail-title, #template-panel-title, #instance-panel-title {
+    text-style: bold;
+    color: $green-100;
+    padding: 1 0;
+}
+
+#completions-title, #files-label, #output-label {
+    color: $blue-100;
+    padding: 1 0 0 0;
+}
+
+#browse-hint, .hint {
+    color: $text-muted;
+}
+
+#ready-banner {
+    padding: 1 2;
+    margin: 0 0 1 0;
+    border: tall $border;
+}
+
+#ready-banner.ready {
+    background: $green-900 40%;
+    border: tall $green-500;
+    color: $green-100;
+}
+
+#ready-banner.pending {
+    background: $amber-700 25%;
+    border: tall $amber-500;
+    color: $amber-100;
+}
+
+.review-card {
+    padding: 1 2;
+    margin: 0 0 1 0;
+    border: tall $border;
+}
+
+.review-card.done {
+    background: $green-900 30%;
+    border: tall $green-500;
+}
+
+.review-card.pending {
+    background: $amber-700 20%;
+    border: tall $amber-500;
+}
+
+#template-panel, #instance-panel {
+    width: 1fr;
+    height: 1fr;
+    border: solid $border;
+    background: $surface-raised;
+    padding: 1 2;
+    margin: 0 1;
+}
+
+#spawn-split {
+    height: 1fr;
+}
+
+#persona-override-hint, #skills-override-hint {
+    color: $amber-300;
+}
+
+Button.-primary {
+    background: $green-700;
+    color: $green-50;
+    border: solid $green-300;
+}
+
+Button.-primary:hover {
+    background: $green-500;
+}
+
+Button {
+    background: $blue-700;
+    color: $blue-50;
+    border: solid $blue-300;
+}
+
+Button:hover {
+    background: $blue-500;
+}
+
+Button.-error {
+    background: $red-700;
+    color: $red-100;
+    border: solid $red-300;
+}
+
+Button.amber {
+    background: $amber-700;
+    color: $amber-50;
+    border: solid $amber-300;
+}
+
+Button:disabled {
+    opacity: 0.45;
+}
+
+TextArea {
+    background: #0a120e;
+    border: solid $border;
+}
+
+ListView {
+    background: $surface;
+    border: solid $border;
+    margin: 0 1 1 1;
+}
+
+ListView:focus {
+    border: solid $green-300;
+}
+
+ListView:focus ListItem.-highlight {
+    background: $green-700 60%;
+}
+
+/* Rich markup status classes */
+.state-ready {
+    color: $green-100;
+    background: $green-700;
+}
+
+.state-review {
+    color: $amber-100;
+    background: $amber-700;
+}
+
+.state-info {
+    color: $blue-100;
+    background: $blue-700;
+}
+
+.state-error {
+    color: $red-100;
+    background: $red-700;
+}
+
+.state-attention {
+    color: $yellow-100;
+    background: $yellow-700;
+}
+
+FullScreenEditorScreen {
+    layout: vertical;
+}
+
+FullScreenEditorScreen #editor-header {
+    dock: top;
+    height: auto;
+    padding: 1 2;
+    background: $green-900;
+    border-bottom: solid $green-500;
+}
+
+FullScreenEditorScreen #editor-body {
+    height: 1fr;
+}
+
+DefinitionDetailScreen {
+    layout: vertical;
+}
+
+CreateDefinitionScreen {
+    layout: vertical;
+}
+
+InstanceDetailScreen {
+    layout: vertical;
+}
+
+#definition-detail-body,
+#create-definition-body,
+#instance-detail-body {
+    height: 1fr;
+}
+
+.review-label {
+    margin: 1 0 0 0;
+    color: $blue-100;
+}
+
+.review-preview-scroll {
+    height: 10;
+    max-height: 14;
+    border: solid $border;
+    background: #0a120e;
+    margin-bottom: 1;
+}
+
+.review-preview-scroll Static {
+    width: 100%;
+    padding: 1;
+}
+
+DefinitionDetailScreen #definition-detail-body {
+    height: 1fr;
+}
+
+CreateDefinitionScreen #create-definition-body {
+    height: 1fr;
+}
+
+CreateDefinitionScreen #create-definition-footer,
+DefinitionDetailScreen #definition-detail-footer {
+    dock: bottom;
+    height: auto;
+    padding: 1 2;
+    background: $surface-raised;
+    border-top: solid $border;
+}
+
+CreateDefinitionScreen #create-definition-footer Button,
+DefinitionDetailScreen #definition-detail-footer Button {
+    margin-right: 1;
+}
+
+InstanceDetailScreen #instance-detail-body {
+    height: 1fr;
+}
+
+FullScreenEditorScreen #editor-footer {
+    dock: bottom;
+    height: auto;
+    max-height: 40%;
+    padding: 1 2;
+    background: $surface-raised;
+    border-top: solid $border;
+}
+
+FullScreenEditorScreen #editor-actions {
+    width: 1fr;
+    height: auto;
+}
+
+FullScreenEditorScreen #editor-actions Button {
+    width: 100%;
+    margin-bottom: 1;
+}

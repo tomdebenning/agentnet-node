@@ -6,9 +6,10 @@ __pycache__/
 htmlcov/
 agents/
 config.yaml
-frontend/node_modules/
-frontend/dist/
-frontend/tsconfig.tsbuildinfo
+gateway.db
+web/node_modules/
+web/dist/
+web/tsconfig.tsbuildinfo
 *.egg-info/
 dist/
 build/

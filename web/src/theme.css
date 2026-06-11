@@ -1,0 +1,49 @@
+:root {
+  /* Green ramp — usable / ready */
+  --green-50: #e8f7ec;
+  --green-100: #c8ebd3;
+  --green-300: #5cb87a;
+  --green-500: #2d9a52;
+  --green-700: #1a6b38;
+  --green-900: #0d3d20;
+
+  /* Amber ramp — not ready / needs review */
+  --amber-50: #fff8e6;
+  --amber-100: #ffe8b3;
+  --amber-300: #ffb84d;
+  --amber-500: #f59e0b;
+  --amber-700: #b45309;
+  --amber-900: #78350f;
+
+  /* Blue ramp — nominal info */
+  --blue-50: #e8f2ff;
+  --blue-100: #c5ddff;
+  --blue-300: #6aabff;
+  --blue-500: #3b82f6;
+  --blue-700: #1d4ed8;
+  --blue-900: #1e3a5f;
+
+  /* Red ramp — errors / agent problems */
+  --red-50: #ffeaea;
+  --red-100: #ffc5c5;
+  --red-300: #f87171;
+  --red-500: #ef4444;
+  --red-700: #b91c1c;
+  --red-900: #7f1d1d;
+
+  /* Yellow ramp — attention needed */
+  --yellow-50: #fefce8;
+  --yellow-100: #fef08a;
+  --yellow-300: #facc15;
+  --yellow-500: #eab308;
+  --yellow-700: #a16207;
+  --yellow-900: #713f12;
+
+  --bg: #0a1410;
+  --surface: #122018;
+  --surface-raised: #1a2e22;
+  --border: #2a4a36;
+  --text: #ecfdf3;
+  --text-muted: #9dc4ad;
+  --link: var(--blue-300);
+}

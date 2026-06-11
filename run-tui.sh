@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
-# Start the Textual TUI for the agentnet-node gateway admin API.
-# The gateway must already be running (default http://127.0.0.1:8080).
-#
-# Typical .env variables:
-#   AGENTNET_GATEWAY_API_URL=http://127.0.0.1:8080
-#   AGENTNET_NODE_PYTHON=/path/to/python  (optional override)
+# Start the Textual TUI (connects to the gateway API).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,27 +12,39 @@ if [[ -f "${ROOT}/.env" ]]; then
   set +a
 fi
 
-if [[ -n "${AGENTNET_NODE_PYTHON:-}" ]]; then
-  PY="${AGENTNET_NODE_PYTHON}"
-elif [[ -n "${PYTHON:-}" ]]; then
-  PY="${PYTHON}"
-elif [[ -x "${ROOT}/.venv/bin/python" ]]; then
-  PY="${ROOT}/.venv/bin/python"
-elif command -v python3 >/dev/null 2>&1; then
-  PY="python3"
-elif command -v python >/dev/null 2>&1; then
-  PY="python"
-else
-  echo "run-tui.sh: no Python interpreter found." >&2
-  echo "  Create a venv: python3 -m venv .venv && .venv/bin/pip install -e ." >&2
-  exit 127
+export PATH="${HOME}/.local/bin:${PATH}"
+
+API_URL="${AGENTNET_GATEWAY_API_URL:-http://127.0.0.1:8080}"
+
+if command -v curl >/dev/null 2>&1; then
+  if ! curl -sf "${API_URL}/api/status" >/dev/null 2>&1; then
+    echo "run-tui.sh: WARNING — gateway not reachable at ${API_URL}" >&2
+    echo "run-tui.sh: Start it in another terminal: ./run-gateway.sh" >&2
+    echo "run-tui.sh: Press r in the TUI to refresh once the gateway is up." >&2
+    echo >&2
+  fi
+fi
+
+if command -v uv >/dev/null 2>&1; then
+  uv sync --quiet
+  exec uv run agentnet-tui --api-url "${API_URL}" "$@"
+fi
+
+PY="${AGENTNET_NODE_PYTHON:-${PYTHON:-}}"
+if [[ -z "${PY}" ]]; then
+  if [[ -x "${ROOT}/.venv/bin/python" ]]; then
+    PY="${ROOT}/.venv/bin/python"
+  elif command -v python3 >/dev/null 2>&1; then
+    PY="python3"
+  else
+    echo "run-tui.sh: install uv (https://docs.astral.sh/uv/) or set PYTHON" >&2
+    exit 127
+  fi
 fi
 
 if ! "${PY}" -c "import tui" 2>/dev/null; then
-  echo "run-tui.sh: tui is not installed for ${PY}" >&2
-  echo "run-tui.sh: from ${ROOT}, run: python3 -m venv .venv && .venv/bin/pip install -e ." >&2
+  echo "run-tui.sh: run 'uv sync' from ${ROOT} to install workspace packages" >&2
   exit 1
 fi
 
-API_URL="${AGENTNET_GATEWAY_API_URL:-http://127.0.0.1:8080}"
 exec "${PY}" -m tui --api-url "${API_URL}" "$@"

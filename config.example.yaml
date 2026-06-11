@@ -5,10 +5,18 @@ node:
     location: "lab"
 
 server:
-  host: "127.0.0.1"
+  host: "0.0.0.0"   # 0.0.0.0 = all interfaces; use 127.0.0.1 for local-only
   port: 8080
 
 agents_root: "./agents"
+definitions_root: "./definitions"
+database: "./gateway.db"
+
+spawn_defaults:
+  model: "llama3.1:8b"
+  target_puller: "puller-01"
+  temperature: 0.7
+  num_ctx: 8192
 
 control_plane:
   url: "http://127.0.0.1:8000"

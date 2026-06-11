@@ -1,42 +1,36 @@
-[build-system]
-requires = ["setuptools>=61", "wheel"]
-build-backend = "setuptools.build_meta"
-
 [project]
-name = "agentnet-node"
+name = "agentnet"
 version = "0.1.0"
-description = "Agentnet node gateway — local agent lifecycle, control-plane proxy, and admin UI"
+description = "Agentnet node monorepo — gateway, agent, TUI, and web admin"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = [
-    "aiosqlite>=0.20.0",
-    "fastapi>=0.115.0",
-    "httpx>=0.28.0",
-    "pydantic>=2.10.0",
-    "pydantic-settings>=2.6.0",
-    "PyYAML>=6.0.0",
-    "structlog>=24.4.0",
-    "tenacity>=8.0.0",
-    "textual>=0.86.0",
-    "uvicorn[standard]>=0.32.0",
-]
+dependencies = []
 
-[project.optional-dependencies]
+[tool.uv]
+package = false
+
+[dependency-groups]
 dev = [
+    "agentnet-agent",
+    "agentnet-gateway",
+    "agentnet-shared",
+    "agentnet-tui",
+    "asgi-lifespan>=2.1.0",
     "pytest>=8.3.0",
     "pytest-asyncio>=0.24.0",
     "respx>=0.21.0",
-    "asgi-lifespan>=2.1.0",
 ]
 
-[project.scripts]
-agentnet-node = "gateway.__main__:main"
-agentnet-node-tui = "tui.__main__:main"
+[tool.uv.workspace]
+members = ["shared", "gateway", "agent", "tui"]
 
-[tool.setuptools.packages.find]
-where = ["src"]
+[tool.uv.sources]
+agentnet-shared = { workspace = true }
+agentnet-agent = { workspace = true }
+agentnet-gateway = { workspace = true }
+agentnet-tui = { workspace = true }
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
-pythonpath = ["src"]
+pythonpath = ["gateway/src", "agent/src", "tui/src", "shared/src"]
