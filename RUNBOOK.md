@@ -2,6 +2,8 @@
 
 Operational guide for running a full **Agentnet** stack on one host: **control-plane**, **task-puller**, and **agentnet-node** (gateway + local agents).
 
+> **Alternative:** [host-gateway](../host-gateway/) is a simpler gateway with the same control-plane + puller model. For new deployments, prefer [host-gateway/docs/RUNBOOK.md](../host-gateway/docs/RUNBOOK.md) unless you specifically need agentnet-node features.
+
 ---
 
 ## 1. What you are running
@@ -9,11 +11,11 @@ Operational guide for running a full **Agentnet** stack on one host: **control-p
 | Component | Repo | Role |
 |-----------|------|------|
 | **control-plane** | `control-plane/` | Central router + Redis queues + registry |
-| **task-puller** | `task-puller/` | Pulls LLM work from control-plane, calls local Ollama |
+| **task-puller** | `task-puller/` | Pulls LLM work from control-plane; calls Ollama or cloud APIs (one backend per process) |
 | **agentnet-node** | `agentnet-node/` | Host gateway: agent lifecycle, admin UI, proxy to control-plane |
 | **node_agent** | (inside agentnet-node) | Slim agent process spawned per agent directory |
 | **Redis** | external | Queue + registry backing store for control-plane |
-| **Ollama** | external | Local LLM runtime paired with task-puller |
+| **Ollama** (or cloud API) | external | LLM runtime for each task-puller (`provider` in puller config) |
 
 Traffic flow for a chat turn:
 
@@ -21,7 +23,7 @@ Traffic flow for a chat turn:
 Admin (browser/TUI) → gateway :8080
 Agent (node_agent)  → gateway /proxy/* → control-plane :8000
 Task-puller         → control-plane (fetch/respond)
-Task-puller         → Ollama :11434
+Task-puller         → LLM backend (Ollama :11434 or cloud HTTPS)
 ```
 
 Agents **never** talk to control-plane directly. The gateway is the only outbound client for agent task/response/heartbeat traffic.
@@ -32,7 +34,7 @@ Agents **never** talk to control-plane directly. The gateway is the only outboun
 
 - **Python 3.11+**
 - **Redis** reachable (default `redis://localhost:6379/0`)
-- **Ollama** running with at least one tool-capable model pulled
+- **Ollama** (for `provider: ollama`) or **cloud API keys** (OpenAI / Anthropic / Gemini) with tool-capable models
 - **Node.js 18+** (only if building the React UI)
 - Optional: **Brave Search API key** for the `web_search` tool
 
@@ -83,27 +85,39 @@ curl -sS http://127.0.0.1:8000/health
 # {"status":"ok"}
 ```
 
-### 3.3 Task puller + Ollama
+### 3.3 Task puller
+
+See [task-puller/docs/RUNBOOK.md](../task-puller/docs/RUNBOOK.md) for full detail.
+
+**Ollama (local):**
 
 ```bash
-# Pull a model (example)
 ollama pull llama3.1:8b
 
 cd task-puller
-python3 -m venv .venv
-.venv/bin/pip install -e .
-
-cp config.example.yaml config.yaml
+./setup.sh --configure    # or manual config.yaml
+./setup.sh
 ```
 
-Edit `config.yaml`:
+**Cloud (OpenAI / Anthropic / Gemini):**
 
+```bash
+cd task-puller
+./setup.sh --configure    # wizard writes config.yaml + .env with API key
+./setup.sh
+```
+
+Edit `config.yaml` if not using the wizard:
+
+- `provider` — `ollama`, `openai`, `anthropic`, or `google`
 - `puller.name` — must match `default_target_puller` in agent configs (e.g. `puller-01`)
 - `control_plane.url` — `http://127.0.0.1:8000`
-- `ollama.url` — `http://localhost:11434`
+- `ollama.url` — when `provider: ollama`
+- API keys — in `.env` for cloud providers
 
 ```bash
 .venv/bin/python -m task_puller
+# or ./run.sh / ./rund.sh
 ```
 
 Verify puller registered:
@@ -171,7 +185,7 @@ Start dependencies before dependents:
 ```
 1. Redis
 2. control-plane
-3. task-puller (requires Ollama)
+3. task-puller (requires configured LLM backend)
 4. agentnet-node gateway
 5. individual agents (via UI/API, or they start on demand)
 ```
@@ -219,7 +233,7 @@ response_timeout_seconds: 300
 ---
 ```
 
-**Important:** `default_target_puller` must match a live puller's `puller.name`. `default_model` must be available on that puller's Ollama instance.
+**Important:** `default_target_puller` must match a live puller's `puller.name`. `default_model` must appear in that puller's advertised/supported models (and exist on Ollama when using `provider: ollama`).
 
 ### 5.2 Web UI
 
@@ -336,7 +350,7 @@ cd task-puller && ./rund.sh
 - At least one puller in `/pullers` with `is_stale: false`
 - Node appears in `/nodes` with recent heartbeat
 - Agent in `/agents` after start (agent heartbeats via gateway proxy)
-- Task queue drains: puller logs show fetch → Ollama → respond
+- Task queue drains: puller logs show fetch → LLM call → respond
 
 ---
 
@@ -397,7 +411,7 @@ Run foreground REPL (see §5.5) for stderr.
 
 2. Confirm `default_target_puller` in agent `config.md` matches `puller.name` in task-puller config.
 
-3. Confirm model exists on Ollama:
+3. Confirm model is advertised for that puller (Ollama: `ollama list` / `curl …/api/tags`).
 
    ```bash
    curl -sS http://localhost:11434/api/tags
@@ -526,5 +540,6 @@ Then open [http://127.0.0.1:8080](http://127.0.0.1:8080), create an agent, edit 
 
 - `agentnet-node/README.md` — project overview
 - `control-plane/README.md` — control-plane API and operator endpoints
-- `task-puller/README.md` — puller pools and Ollama pairing
+- `task-puller/README.md` — multi-provider pullers, setup wizard, worker pools
+- `task-puller/docs/RUNBOOK.md` — puller install and troubleshooting
 - `dagent-one/README.md` — full agent template (alternative to slim `node_agent`)
