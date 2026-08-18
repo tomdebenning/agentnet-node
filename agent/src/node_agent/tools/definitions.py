@@ -47,6 +47,26 @@ ALL_TOOLS: list[ToolDefinition] = [
     ToolDefinition(
         type="function",
         function={
+            "name": "run_command",
+            "description": (
+                "Run a shell command with cwd inside the agent workspace. "
+                "Use for builds, tests, git, and other software work. "
+                "Working directory is workspace-sandboxed; absolute cwd is rejected."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "command": {"type": "string"},
+                    "cwd": {"type": "string", "default": "."},
+                    "timeout_seconds": {"type": "number", "default": 60},
+                },
+                "required": ["command"],
+            },
+        },
+    ),
+    ToolDefinition(
+        type="function",
+        function={
             "name": "list_databases",
             "description": "List SQLite databases.",
             "parameters": {"type": "object", "properties": {}, "required": []},

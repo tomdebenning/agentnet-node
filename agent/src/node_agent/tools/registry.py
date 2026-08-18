@@ -13,7 +13,7 @@ from node_agent.gateway_client import GatewayClient
 from node_agent.markdown_config import AgentSettings
 from node_agent.run_tools import RunToolContext
 from shared.sandbox import SandboxViolation
-from node_agent.tools import files, sqlite_tools
+from node_agent.tools import files, shell, sqlite_tools
 
 ToolHandler = Callable[..., Awaitable[str]]
 
@@ -43,6 +43,7 @@ class ToolRegistry:
             "read_file": self._read_file,
             "write_file": self._write_file,
             "list_files": self._list_files,
+            "run_command": self._run_command,
             "list_databases": self._list_databases,
             "sqlite_query": self._sqlite_query,
             "sqlite_execute": self._sqlite_execute,
@@ -82,6 +83,24 @@ class ToolRegistry:
             self._settings.paths.workspace_root,
             kwargs.get("path", "."),
         )
+
+    async def _run_command(self, **kwargs: Any) -> str:
+        result = await shell.run_command(
+            self._settings.paths.workspace_root,
+            kwargs["command"],
+            cwd=kwargs.get("cwd") or ".",
+            timeout_seconds=kwargs.get("timeout_seconds"),
+        )
+        path_hint = kwargs.get("cwd") or "."
+        if self._run_store is not None and self._conversation_id is not None:
+            artifact = self._run_store.record_artifact(
+                self._conversation_id,
+                artifact_type="command",
+                summary=f"Ran command in {path_hint}",
+                ref={"cwd": path_hint, "command": kwargs.get("command", "")[:200]},
+            )
+            return f"{result} (artifact_id={artifact.artifact_id})"
+        return result
 
     async def _list_databases(self, **kwargs: Any) -> str:
         return await sqlite_tools.list_databases(self._settings.paths.sqlite_root)
