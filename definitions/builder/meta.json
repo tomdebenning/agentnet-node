@@ -1,0 +1,7 @@
+{
+  "definition_id": "builder",
+  "uses_memory": true,
+  "persona_reviewed": true,
+  "skills_reviewed": true,
+  "spawnable": true
+}

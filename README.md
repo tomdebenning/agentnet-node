@@ -60,3 +60,14 @@ python3 -m tui
 - **dagent-one** — full agent template (this project uses a new slim `node_agent` runtime)
 
 Shared `schemas.py` must remain byte-identical across control-plane, task-puller, dagent-one, and `agentnet-node/src/gateway/schemas.py`.
+
+## Builder (software worker)
+
+`definitions/builder` is a spawnable software-builder with persistent
+`memory.md` and a workspace-sandboxed `run_command` tool. It is not a
+newsroom desk.
+
+Chief of Staff creates work with `POST /sessions` and
+`target_puller: "builder-01"` (or `definition: "builder"`). A running
+`python -m node_agent.session_worker` picks those sessions up. Details:
+[docs/BUILDER.md](docs/BUILDER.md).

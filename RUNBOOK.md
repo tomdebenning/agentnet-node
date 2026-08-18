@@ -543,3 +543,52 @@ Then open [http://127.0.0.1:8080](http://127.0.0.1:8080), create an agent, edit 
 - `task-puller/README.md` — multi-provider pullers, setup wizard, worker pools
 - `task-puller/docs/RUNBOOK.md` — puller install and troubleshooting
 - `dagent-one/README.md` — full agent template (alternative to slim `node_agent`)
+
+---
+
+## 12. Builder worker (software, not newsroom)
+
+Builder is a spawnable **software** definition plus an optional session
+worker. It is **not** a fourth newsroom desk. Factory reporter/editor
+stay on `puller-01`.
+
+See [docs/BUILDER.md](docs/BUILDER.md) for the Chief of Staff flow.
+
+### Session targeting
+
+`POST /sessions` on the control plane enqueues a Task for
+`target_puller`. To have the builder pick it up:
+
+```bash
+curl -sS -X POST http://sg02:8000/sessions \
+  -H 'Content-Type: application/json' \
+  -d '{"goal":"Add a /health route and a test","target_puller":"builder-01"}'
+```
+
+If the control plane build understands `definition`, this is equivalent
+and defaults the puller to `builder-01`:
+
+```bash
+curl -sS -X POST http://sg02:8000/sessions \
+  -H 'Content-Type: application/json' \
+  -d '{"goal":"Add a /health route and a test","definition":"builder"}'
+```
+
+A running `python -m node_agent.session_worker` (or
+`scripts/run-builder-worker.sh`) claims `builder-01` tasks, runs them
+with node_agent tools (`run_command`, files, memory), and sends LLM
+turns to `puller-01`. Persistent memory is
+`{agents_root}/builder-01/memory.md`.
+
+Do not point builder sessions at `puller-01` — that is the factory LLM
+queue.
+
+### Spawn from the gateway
+
+```bash
+curl -sS -X POST http://127.0.0.1:8080/api/definitions/builder/spawn \
+  -H 'Content-Type: application/json' \
+  -d '{"mode":"autonomous","base_name":"builder","goal":"…","target_puller":"puller-01","auto_start":true}'
+```
+
+Here `target_puller` is the **LLM** puller, not the session inbox.
