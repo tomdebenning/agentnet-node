@@ -235,6 +235,7 @@ export const api = {
       model?: string;
       temperature?: number;
       num_ctx?: number;
+      profile?: "grading" | "deterministic";
       goal?: string;
       task_body?: string;
       conversation_id?: string;
@@ -281,7 +282,7 @@ export const api = {
   startRun: (
     id: string,
     goal: string,
-    options?: { temperature?: number; num_ctx?: number },
+    options?: { temperature?: number; num_ctx?: number; profile?: "grading" | "deterministic" },
   ) =>
     fleetRequest<RunSummary>(`/instances/${id}/runs`, {
       method: "POST",

@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from gateway.config import GatewayConfig, SpawnDefaultsSection
+from node_agent.task_options import normalize_task_profile
 
 
 def spawn_defaults_section(config: GatewayConfig) -> SpawnDefaultsSection:
@@ -32,12 +33,16 @@ def explicit_run_options(
     *,
     temperature: float | None = None,
     num_ctx: int | None = None,
+    profile: str | None = None,
 ) -> dict[str, Any]:
     options: dict[str, Any] = {}
     if temperature is not None:
         options["temperature"] = temperature
     if num_ctx is not None:
         options["num_ctx"] = num_ctx
+    normalized = normalize_task_profile(profile)
+    if normalized is not None:
+        options["profile"] = normalized
     return options
 
 
@@ -46,13 +51,18 @@ def run_options_for_spawn(
     *,
     temperature: float | None = None,
     num_ctx: int | None = None,
+    profile: str | None = None,
 ) -> dict[str, Any]:
     resolved = resolved_instance_config(
         config,
         temperature=temperature,
         num_ctx=num_ctx,
     )
-    return {
+    options: dict[str, Any] = {
         "temperature": resolved["temperature"],
         "num_ctx": resolved["num_ctx"],
     }
+    normalized = normalize_task_profile(profile)
+    if normalized is not None:
+        options["profile"] = normalized
+    return options

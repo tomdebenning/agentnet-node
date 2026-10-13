@@ -11,6 +11,7 @@ from gateway.agent_manager import AgentProcessState
 from shared.markdown_io import parse_markdown_document
 from gateway.routes import deps
 from gateway.spawn_defaults import explicit_run_options, resolved_instance_config
+from node_agent.task_options import UnknownTaskProfile
 
 router = APIRouter(prefix="/api/fleet", tags=["fleet"])
 
@@ -33,6 +34,7 @@ class NewRunBody(BaseModel):
     goal: str = Field(min_length=1)
     temperature: float | None = None
     num_ctx: int | None = None
+    profile: str | None = None
 
 
 class MarkdownUpdateBody(BaseModel):
@@ -230,10 +232,14 @@ async def start_instance_run(
     request: Request, instance_id: str, body: NewRunBody
 ) -> dict[str, Any]:
     lifecycle_mgr = deps.lifecycle(request)
-    run_options = explicit_run_options(
-        temperature=body.temperature,
-        num_ctx=body.num_ctx,
-    )
+    try:
+        run_options = explicit_run_options(
+            temperature=body.temperature,
+            num_ctx=body.num_ctx,
+            profile=body.profile,
+        )
+    except UnknownTaskProfile as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     try:
         return await lifecycle_mgr.start_new_run(
             instance_id,

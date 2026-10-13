@@ -11,6 +11,7 @@ from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 from shared.markdown_io import parse_markdown_document
 from gateway.routes import deps
 from gateway.spawn_defaults import resolved_instance_config, run_options_for_spawn
+from node_agent.task_options import UnknownTaskProfile
 
 definition_ops = APIRouter()
 
@@ -41,6 +42,7 @@ class SpawnInstanceBody(BaseModel):
     model: str | None = None
     temperature: float | None = None
     num_ctx: int | None = None
+    profile: str | None = None
     goal: str = ""
     task_body: str = ""
     conversation_id: str | None = None
@@ -266,11 +268,15 @@ async def spawn_from_definition(
         temperature=body.temperature,
         num_ctx=body.num_ctx,
     )
-    run_options = run_options_for_spawn(
-        config,
-        temperature=body.temperature,
-        num_ctx=body.num_ctx,
-    )
+    try:
+        run_options = run_options_for_spawn(
+            config,
+            temperature=body.temperature,
+            num_ctx=body.num_ctx,
+            profile=body.profile,
+        )
+    except UnknownTaskProfile as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     try:
         return await lifecycle_mgr.spawn(
             definition_id,
