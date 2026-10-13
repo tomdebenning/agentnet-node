@@ -133,12 +133,21 @@ def llm_options(settings: AgentSettings) -> dict[str, Any]:
     return {"temperature": settings.temperature, "num_ctx": settings.num_ctx}
 
 
-def llm_options_for_run(settings: AgentSettings, run_options: dict[str, Any]) -> dict[str, Any]:
-    merged = llm_options(settings)
-    for key in ("temperature", "num_ctx"):
-        if key in run_options:
-            merged[key] = run_options[key]
-    return merged
+def llm_options_for_run(
+    settings: AgentSettings,
+    run_options: dict[str, Any] | None = None,
+    *,
+    profile: str | None = None,
+) -> dict[str, Any]:
+    """Chat defaults, plus task overrides. Pass profile='grading' to opt into deterministic grading."""
+    from node_agent.task_options import resolve_task_options
+
+    return resolve_task_options(
+        temperature=settings.temperature,
+        num_ctx=settings.num_ctx,
+        run_options=run_options,
+        profile=profile,
+    )
 
 
 def task_user_prompt(settings: AgentSettings) -> str:

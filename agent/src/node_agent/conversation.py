@@ -55,6 +55,7 @@ async def run_conversation_turn(
     conversation_id: str,
     user_input: str,
     run_options: dict[str, Any] | None = None,
+    profile: str | None = None,
 ) -> str:
     existing = await store.get_messages(conversation_id)
     if not existing:
@@ -83,7 +84,7 @@ async def run_conversation_turn(
             model=settings.default_model,
             messages=messages,
             tools=tools_for_agent(uses_memory=settings.uses_memory),
-            options=llm_options_for_run(settings, run_options or {}),
+            options=llm_options_for_run(settings, run_options or {}, profile=profile),
             submitted_at=utcnow_iso(),
         )
         await gateway.post_task(task)

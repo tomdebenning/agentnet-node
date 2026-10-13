@@ -7,7 +7,7 @@ from typing import Any
 
 from shared.run_store import RunStore
 from node_agent.gateway_client import GatewayClient
-from node_agent.markdown_config import AgentSettings
+from node_agent.markdown_config import AgentSettings, llm_options_for_run
 from shared.run_store import utcnow_iso
 from shared.schemas import Message, Task
 from node_agent.tools.definitions import ALL_TOOLS
@@ -53,6 +53,8 @@ class RunToolContext:
         target_agent_id: str,
         artifact_id: str,
         prompt: str,
+        *,
+        profile: str | None = None,
     ) -> str:
         artifact = self.store.get_artifact(self.conversation_id, artifact_id)
         handoff = {
@@ -75,7 +77,7 @@ class RunToolContext:
             model=self.settings.default_model,
             messages=[Message(role="user", content=content)],
             tools=ALL_TOOLS,
-            options={"temperature": self.settings.temperature, "num_ctx": self.settings.num_ctx},
+            options=llm_options_for_run(self.settings, profile=profile),
             submitted_at=utcnow_iso(),
         )
         await self.gateway.post_task(task)

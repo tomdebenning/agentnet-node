@@ -34,3 +34,6 @@ agentnet-tui = { workspace = true }
 asyncio_mode = "auto"
 testpaths = ["tests"]
 pythonpath = ["gateway/src", "agent/src", "tui/src", "shared/src"]
+markers = [
+    "real_pullers: call ControlPlaneClient.list_pullers instead of the spawn-test stub",
+]
