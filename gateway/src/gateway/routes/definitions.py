@@ -5,10 +5,12 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Literal
 
+import httpx
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 from shared.markdown_io import parse_markdown_document
+from gateway.puller_liveness import PullerUnavailable, check_puller_liveness
 from gateway.routes import deps
 from gateway.spawn_defaults import resolved_instance_config, run_options_for_spawn
 from node_agent.task_options import UnknownTaskProfile
@@ -277,6 +279,20 @@ async def spawn_from_definition(
         )
     except UnknownTaskProfile as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+    try:
+        pullers = await request.app.state.control_plane_client.list_pullers(active_only=True)
+        check_puller_liveness(
+            pullers,
+            target_puller=str(resolved["target_puller"]),
+            model=str(resolved["model"]),
+        )
+    except PullerUnavailable as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except (httpx.HTTPError, ValueError) as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"puller liveness check failed: {exc}",
+        ) from exc
     try:
         return await lifecycle_mgr.spawn(
             definition_id,

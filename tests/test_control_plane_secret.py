@@ -47,6 +47,7 @@ def test_shared_secret_header_uses_stripped_env(monkeypatch: pytest.MonkeyPatch)
     assert shared_secret_headers() == {SHARED_SECRET_HEADER: "top-secret"}
 
 
+@pytest.mark.real_pullers
 @pytest.mark.asyncio
 async def test_every_control_plane_call_omits_header_when_unset(
     monkeypatch: pytest.MonkeyPatch,
@@ -65,22 +66,26 @@ async def test_every_control_plane_call_omits_header_when_unset(
                 200, json={"acknowledged": True}
             )
             health = router.get("http://127.0.0.1:8000/health").respond(200, json={"status": "ok"})
+            pullers = router.get("http://127.0.0.1:8000/pullers").respond(200, json=[])
 
             await client.post_task(_task())
             await client.get_responses("agent-1", max=1)
             await client.post_agent_heartbeat(AgentHeartbeat(agent_id="agent-1", status="idle"))
             await client.post_node_heartbeat(NodeHeartbeat(node_id="node-01", status="idle"))
             ok, error = await client.check_health()
+            await client.list_pullers(active_only=True)
 
             assert ok is True
             assert error is None
-            for route in (tasks, responses, agent_hb, node_hb, health):
+            assert "active_only=true" in str(pullers.calls.last.request.url)
+            for route in (tasks, responses, agent_hb, node_hb, health, pullers):
                 assert route.called
                 assert _header(route.calls.last.request) is None
     finally:
         await client.aclose()
 
 
+@pytest.mark.real_pullers
 @pytest.mark.asyncio
 async def test_every_control_plane_call_sends_secret_when_set(
     monkeypatch: pytest.MonkeyPatch,
@@ -113,17 +118,24 @@ async def test_every_control_plane_call_sends_secret_when_set(
                 200, json={"acknowledged": True}
             )
             health = router.get("http://127.0.0.1:8000/health").respond(200, json={"status": "ok"})
+            pullers = router.get("http://127.0.0.1:8000/pullers").respond(
+                200,
+                json=[{"puller_name": "puller-01", "supported_models": ["llama3.1:8b"]}],
+            )
 
             await client.post_task(_task())
             found = await client.get_responses("agent-1", max=1)
             await client.post_agent_heartbeat(AgentHeartbeat(agent_id="agent-1", status="working"))
             await client.post_node_heartbeat(NodeHeartbeat(node_id="node-01", status="busy"))
             ok, _error = await client.check_health()
+            listed = await client.list_pullers(active_only=True)
 
             assert ok is True
             assert found[0].message is not None
             assert found[0].message.content == "ok"
-            for route in (tasks, responses, agent_hb, node_hb, health):
+            assert listed[0]["puller_name"] == "puller-01"
+            assert "active_only=true" in str(pullers.calls.last.request.url)
+            for route in (tasks, responses, agent_hb, node_hb, health, pullers):
                 assert _header(route.calls.last.request) == "node-secret"
     finally:
         await client.aclose()

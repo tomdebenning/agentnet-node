@@ -116,6 +116,31 @@ class ControlPlaneClient:
     def base_url(self) -> str:
         return str(self._client.base_url)
 
+    async def list_pullers(self, *, active_only: bool = True) -> list[dict[str, Any]]:
+        """Return puller records. Spawn uses ``active_only=True`` (``?active_only=true``)."""
+        params = {"active_only": "true"} if active_only else None
+
+        @self._retrying()
+        async def _do() -> httpx.Response:
+            return await self._client.get(
+                "/pullers",
+                params=params,
+                headers=shared_secret_headers(),
+            )
+
+        response = await _do()
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content:
+            return []
+        data = response.json()
+        if isinstance(data, dict):
+            items = data.get("pullers", [])
+        else:
+            items = data
+        if not isinstance(items, list):
+            raise ValueError("unexpected /pullers response")
+        return [item for item in items if isinstance(item, dict)]
+
     async def check_health(self) -> tuple[bool, str | None]:
         """Return (ok, error_message). Does not retry — for status probes."""
         try:
